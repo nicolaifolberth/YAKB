@@ -1,0 +1,106 @@
+import { init, renderBoard } from "./ui/render.js";
+import * as cols from "./features/columns.js";
+import * as cards from "./features/cards.js";
+import { state } from "./core/state.js";
+
+init();
+
+// Enter speichert die Karte, wenn der Dialog offen ist (Fokus im Titel)
+const titleInputEl = document.getElementById("titleInput");
+const saveTaskBtnEl = document.getElementById("saveTaskBtn");
+if (saveTaskBtnEl && !saveTaskBtnEl.value) saveTaskBtnEl.value = "save";
+titleInputEl?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    saveTaskBtnEl?.click();
+  }
+});
+
+// Enter speichert die Spalte (Fokus im Namen)
+const colNameInputEl = document.getElementById("colNameInput");
+const saveColBtnEl = document.getElementById("saveColBtn");
+if (saveColBtnEl && !saveColBtnEl.value) saveColBtnEl.value = "save";
+colNameInputEl?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    saveColBtnEl?.click();
+  }
+});
+
+document.getElementById("addColBtn").addEventListener("click", ()=>{
+  const dlg = document.getElementById("colDialog");
+  const input = document.getElementById("colNameInput");
+  const saveBtn = document.getElementById("saveColBtn");
+
+  if (input) input.value = "";
+  if (saveBtn) saveBtn.value = "save";
+
+  const onClose = () => {
+    if (dlg && dlg.returnValue === "save" && input && input.value.trim()) {
+      cols.addColumn(input.value);
+      renderBoard();
+    }
+    dlg.removeEventListener("close", onClose);
+  };
+
+  if (dlg && typeof dlg.showModal === "function") {
+    dlg.addEventListener("close", onClose);
+    dlg.showModal();
+    setTimeout(() => input?.focus(), 0);
+  } else {
+    const name = prompt("Name der neuen Spalte:", "Neue Spalte");
+    cols.addColumn(name);
+    renderBoard();
+  }
+});
+
+document.getElementById("addTaskBtn").addEventListener("click", ()=>{
+const dlg = document.getElementById("taskDialog");
+const form = document.getElementById("taskForm");
+const saveBtn = document.getElementById("saveTaskBtn");
+const titleInput = document.getElementById("titleInput");
+const descInput = document.getElementById("descInput");
+
+if (titleInput) titleInput.value = "";
+if (descInput) descInput.value = "";
+
+// Stelle sicher, dass der Save-Button eine Return-Value setzt
+if (saveBtn) saveBtn.value = "save";
+
+const onClose = () => {
+    if (dlg && dlg.returnValue === "save" && titleInput &&
+titleInput.value.trim()) {
+      cards.addCard({ title: titleInput.value, desc: descInput.value });
+      renderBoard();
+    }
+    dlg.removeEventListener("close", onClose);
+};
+
+if (dlg) {
+    dlg.addEventListener("close", onClose);
+    if (typeof dlg.showModal === "function") {
+      dlg.showModal();
+    } else {
+      // Fallback ohne <dialog>-Support
+      const title = prompt("Titel der neuen Karte:", "Neue Aufgabe");
+      if (title) { cards.addCard({ title, desc: "" }); renderBoard(); }
+      dlg.removeEventListener("close", onClose);
+    }
+}
+});
+
+// Export: Spalten + Karten als JSON herunterladen
+document.getElementById("exportBtn")?.addEventListener("click", () => {
+  const data = JSON.stringify({
+    columns: state.columns,
+    cards: state.cards,
+    version: 2,
+  }, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "kanban-backup.json";
+  a.click();
+  URL.revokeObjectURL(url);
+});

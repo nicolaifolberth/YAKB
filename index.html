@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kanban Board</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- zentrales CSS -->
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="3" y="4" width="6" height="16" rx="2" fill="#3b82f6"/>
+        <rect x="10" y="4" width="6" height="10" rx="2" fill="#60a5fa"/>
+        <rect x="17" y="4" width="4" height="6" rx="2" fill="#93c5fd"/>
+      </svg>
+      <h1>Kanban</h1>
+    </div>
+    <div class="controls toolbar">
+      <button id="addTaskBtn" class="secondary">+ Karte</button>
+      <button id="addColBtn" class="secondary">+ Spalte</button>
+      <button id="exportBtn" class="secondary">Export</button>
+      <label for="importInput" class="btn">Import</label>
+      <input id="importInput" type="file" accept="application/json" class="hidden-input" />
+      <button id="resetBtn" class="ghost">Zurücksetzen</button>
+    </div>
+  </header>
+
+  <main class="board" id="board"></main>
+
+  <footer class="footer">
+    Lokales Kanban – Daten werden im Browser (localStorage) gespeichert.
+  </footer>
+
+  <!-- Templates für Spalten und Karten -->
+  <template id="column-template">
+    <section class="column" data-col="">
+      <div class="column-header" data-col-header>
+        <h2></h2>
+        <div class="column-tools">
+          <button class="ghost small" data-rename>Umbenennen</button>
+          <button class="ghost small" data-del>Spalte löschen</button>
+        </div>
+      </div>
+      <span class="count small"></span>
+      <div class="dropzone" data-dropzone></div>
+    </section>
+  </template>
+
+  <template id="card-template">
+    <article class="card" draggable="true" data-id="">
+      <div class="card-title"></div>
+      <div class="card-desc"></div>
+      <div class="card-actions">
+        <button class="secondary small" data-edit>Bearbeiten</button>
+        <button class="ghost small" data-delete>Löschen</button>
+      </div>
+    </article>
+  </template>
+
+  <!-- Dialog für Karten hinzufügen/bearbeiten -->
+  <dialog id="taskDialog">
+    <form method="dialog" id="taskForm">
+      <h3 id="dialogTitle">Karte</h3>
+      <label for="titleInput">Titel</label>
+      <input id="titleInput" />
+      <label for="descInput">Beschreibung</label>
+      <textarea id="descInput" rows="5"></textarea>
+      <div class="form-actions">
+        <button value="cancel" class="ghost">Abbrechen</button>
+        <button id="saveTaskBtn" class="btn">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Dialog für Spalten hinzufügen -->
+  <dialog id="colDialog">
+    <form method="dialog" id="colForm">
+      <h3>Neue Spalte</h3>
+      <label for="colNameInput">Name</label>
+      <input id="colNameInput" required />
+      <div class="form-actions">
+        <button value="cancel" class="ghost">Abbrechen</button>
+        <button id="saveColBtn" class="btn" value="save">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Einstiegspunkt: JavaScript -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
