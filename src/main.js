@@ -1,9 +1,49 @@
 import { init, renderBoard } from "./ui/render.js";
+import { renderArchive } from "./ui/archive.js";
 import * as cols from "./features/columns.js";
 import * as cards from "./features/cards.js";
 import { state } from "./core/state.js";
 
 init();
+
+// Header: Archiv-Button einfuegen und View toggeln
+const controlsEl = document.querySelector('.controls.toolbar');
+let archiveBtn = document.getElementById('archiveBtn');
+if (!archiveBtn) {
+  archiveBtn = document.createElement('button');
+  archiveBtn.id = 'archiveBtn';
+  archiveBtn.className = 'ghost';
+  archiveBtn.textContent = 'Archiv';
+  const resetBtn = document.getElementById('resetBtn');
+  if (controlsEl) {
+    if (resetBtn && resetBtn.parentElement === controlsEl) {
+      controlsEl.insertBefore(archiveBtn, resetBtn);
+    } else {
+      controlsEl.appendChild(archiveBtn);
+    }
+  }
+}
+
+let showingArchive = false;
+function updateHeaderButtons() {
+  if (archiveBtn) archiveBtn.textContent = showingArchive ? 'Board' : 'Archiv';
+  const addTask = document.getElementById('addTaskBtn');
+  const addCol = document.getElementById('addColBtn');
+  if (addTask) addTask.style.display = showingArchive ? 'none' : '';
+  if (addCol) addCol.style.display = showingArchive ? 'none' : '';
+}
+
+archiveBtn?.addEventListener('click', () => {
+  showingArchive = !showingArchive;
+  if (showingArchive) {
+    renderArchive();
+  } else {
+    renderBoard();
+  }
+  updateHeaderButtons();
+});
+
+updateHeaderButtons();
 
 // Enter speichert die Karte, wenn der Dialog offen ist (Fokus im Titel)
 const titleInputEl = document.getElementById("titleInput");

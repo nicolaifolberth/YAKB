@@ -8,7 +8,7 @@ const cardTpl = document.getElementById("card-template");
 
 export function init() {
   migrate();
-  // Event Delegation: Spalten-Löschen-Button
+  // Event Delegation: Spalten loeschen Button
   board.addEventListener('click', (e) => {
     const btn = e.target && e.target.closest ? e.target.closest('[data-del]') : null;
     if (btn) {
@@ -20,7 +20,7 @@ export function init() {
       return;
     }
   });
-  // Event Delegation: Spalten-Umbenennen-Button
+  // Event Delegation: Spalten umbenennen Button
   board.addEventListener('click', (e) => {
     const btn = e.target && e.target.closest ? e.target.closest('[data-rename]') : null;
     if (btn) {
@@ -42,7 +42,7 @@ export function renderBoard() {
     node.dataset.col = col.id;
     node.querySelector("h2").textContent = col.name;
 
-    // Column Drag & Drop (Reihenfolge ändern)
+    // Column Drag & Drop (Reihenfolge aendern)
     const section = node; // <section class="column">
     const header = node.querySelector('[data-col-header]');
     if (header) {
@@ -83,19 +83,19 @@ export function renderBoard() {
       });
     }
 
-    // Dropzone-Events für Karten (Drag & Drop)
-    const dropzone = node.querySelector("[data-dropzone]");
+    // Dropzone-Events fuer Karten (Drag & Drop)
+    const dropzone = node.querySelector('[data-dropzone]');
     if (dropzone) {
-      dropzone.addEventListener("dragover", (e) => {
+      dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropzone.classList.add("dragover");
+        dropzone.classList.add('dragover');
       });
-      dropzone.addEventListener("dragleave", () => {
-        dropzone.classList.remove("dragover");
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dragover');
       });
-      dropzone.addEventListener("drop", (e) => {
+      dropzone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropzone.classList.remove("dragover");
+        dropzone.classList.remove('dragover');
         const id = state.draggedCardId;
         if (!id) return;
         cards.moveCard(id, col.id);
@@ -103,26 +103,27 @@ export function renderBoard() {
       });
     }
 
-    // … Events anbinden (Rename/Delete/Drag/Drop) und Dropzone-Karten setzen
+    // Append section
     board.appendChild(node);
   }
   renderCards();
 }
 
 export function renderCards() {
-  for (const dz of board.querySelectorAll("[data-dropzone]")) dz.innerHTML = "";
+  for (const dz of board.querySelectorAll('[data-dropzone]')) dz.innerHTML = '';
   for (const c of state.cards) {
+    if (c.archived) continue; // hide archived on board view
     const el = cardTpl.content.firstElementChild.cloneNode(true);
     el.dataset.id = c.id;
-    el.querySelector(".card-title").textContent = c.title || "(ohne Titel)";
-    el.querySelector(".card-desc").textContent = c.desc || "";
-    // … Events anbinden (Edit/Delete/Drag)
+    el.querySelector('.card-title').textContent = c.title || '(ohne Titel)';
+    el.querySelector('.card-desc').textContent = c.desc || '';
+    // Delete
     el.querySelector('[data-delete]')?.addEventListener('click', () => {
-      if (!confirm('Diese Karte wirklich löschen?')) return;
+      if (!confirm('Diese Karte wirklich loeschen?')) return;
       cards.deleteCard(c.id);
       renderCards();
     });
-    // Edit-Event anbinden
+    // Edit
     el.querySelector('[data-edit]')?.addEventListener('click', () => {
       const dlg = document.getElementById('taskDialog');
       const titleInput = document.getElementById('titleInput');
@@ -154,7 +155,19 @@ export function renderCards() {
         renderCards();
       }
     });
-    // Drag-Events binden
+    // Additional action: mark as done -> archive
+    const actions = el.querySelector('.card-actions');
+    if (actions) {
+      const doneBtn = document.createElement('button');
+      doneBtn.className = 'secondary small';
+      doneBtn.textContent = 'Abschliessen';
+      doneBtn.addEventListener('click', () => {
+        cards.archiveCard(c.id);
+        renderCards();
+      });
+      actions.prepend(doneBtn);
+    }
+    // Drag events
     el.addEventListener('dragstart', (e) => {
       state.draggedCardId = c.id;
       if (e.dataTransfer) {
@@ -179,17 +192,17 @@ function clearColDropHints() {
 function handleColumnDelete(colId) {
   const col = state.columns.find(c => c.id === colId);
   if (!col) return;
-  if (state.columns.length <= 1) { alert('Die letzte Spalte kann nicht gelöscht werden.'); return; }
+  if (state.columns.length <= 1) { alert('Die letzte Spalte kann nicht geloescht werden.'); return; }
   const count = state.cards.filter(c => c.col === colId).length;
   if (count === 0) {
-    if (!confirm(`Spalte "${col.name}" wirklich löschen?`)) return;
+    if (!confirm(`Spalte "${col.name}" wirklich loeschen?`)) return;
     cols.deleteColumn(colId, { type: 'delete' });
     renderBoard();
     return;
   }
   const action = prompt(
-    `Spalte "${col.name}" enthält ${count} Karte(n).\n` +
-    `Tippe:\n- "verschieben" um Karten in eine andere Spalte zu verschieben\n- "loeschen" um alle Karten dieser Spalte zu löschen`,
+    `Spalte "${col.name}" enthaelt ${count} Karte(n).\n` +
+    `Tippe:\n- "verschieben" um Karten in eine andere Spalte zu verschieben\n- "loeschen" um alle Karten dieser Spalte zu loeschen`,
     'verschieben'
   );
   if (action == null) return;
@@ -198,14 +211,14 @@ function handleColumnDelete(colId) {
     const targets = state.columns.filter(c => c.id !== colId);
     if (targets.length === 0) { alert('Keine Zielspalte vorhanden.'); return; }
     const list = targets.map((c,i)=>`${i+1}) ${c.name}`).join('\n');
-    const pick = prompt(`Wohin verschieben? Wähle Nummer:\n${list}`, '1');
+    const pick = prompt(`Wohin verschieben? Waehl Nummer:\n${list}`, '1');
     const idx = Number(pick) - 1;
     const target = targets[idx];
     if (!target) return;
     cols.deleteColumn(colId, { type: 'move', to: target.id });
     renderBoard();
   } else if (a.startsWith('loesch') || a.startsWith('loes')) {
-    if (!confirm(`Wirklich Spalte "${col.name}" und alle ${count} Karten löschen?`)) return;
+    if (!confirm(`Wirklich Spalte "${col.name}" und alle ${count} Karten loeschen?`)) return;
     cols.deleteColumn(colId, { type: 'delete' });
     renderBoard();
   }
@@ -221,3 +234,4 @@ function handleColumnRename(colId) {
   cols.renameColumn(colId, name);
   renderBoard();
 }
+
