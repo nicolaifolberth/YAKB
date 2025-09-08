@@ -21,6 +21,8 @@ export function migrate() {
   let changed = false;
   for (const card of state.cards) {
     if (!valid.has(card.col)) { card.col = state.columns[0].id; changed = true; }
+    if (card.archived === undefined) { card.archived = false; changed = true; }
+    if (card.completedAt === undefined) { card.completedAt = null; changed = true; }
   }
   if (changed) saveCards(state.cards);
 }
