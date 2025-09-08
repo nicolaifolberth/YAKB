@@ -4,6 +4,39 @@ import * as cols from "./features/columns.js";
 import * as cards from "./features/cards.js";
 import { state } from "./core/state.js";
 
+// Ensure Font Awesome and replace delete buttons in templates with icons
+(function setupIcons(){
+  // Inject FA stylesheet once
+  const FA_HREF = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';
+  if (!document.querySelector(`link[href*="font-awesome"][href*="all.min.css"]`)) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = FA_HREF;
+    document.head.appendChild(link);
+  }
+  // Update templates' delete buttons to icon-only
+  const colTpl = document.getElementById('column-template');
+  const cardTpl = document.getElementById('card-template');
+  try {
+    const colBtn = colTpl?.content?.querySelector('[data-del]');
+    if (colBtn) {
+      colBtn.classList.add('icon-btn');
+      colBtn.setAttribute('title', 'Spalte löschen');
+      colBtn.setAttribute('aria-label', 'Spalte löschen');
+      colBtn.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
+    }
+  } catch {}
+  try {
+    const cardBtn = cardTpl?.content?.querySelector('[data-delete]');
+    if (cardBtn) {
+      cardBtn.classList.add('icon-btn');
+      cardBtn.setAttribute('title', 'Karte löschen');
+      cardBtn.setAttribute('aria-label', 'Karte löschen');
+      cardBtn.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
+    }
+  } catch {}
+})();
+
 init();
 
 // Header: Archiv-Button einfuegen und View toggeln
